@@ -1,0 +1,56 @@
+service: express-user-api
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  environment:
+    DYNAMO_DB_TABLE: ProductAPI
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: "*"
+
+functions:
+  api:
+    handler: src/handler.handler
+    events:
+      - httpApi: '*'
+
+plugins:
+  - serverless-webpack
+
+custom:
+  webpack:
+    webpackConfig: ./webpack.config.cjs
+    includeModules: true
+
+resources:
+  Resources:
+    ProductAPI:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ProductAPI
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: pk
+            AttributeType: S
+          - AttributeName: sk
+            AttributeType: S
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: pk
+            KeyType: HASH
+          - AttributeName: sk
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: GSI1
+            KeySchema:
+              - AttributeName: email
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
