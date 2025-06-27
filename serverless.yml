@@ -7,7 +7,7 @@ provider:
   runtime: nodejs18.x
   region: us-east-1
   environment:
-    DYNAMO_DB_TABLE: USER-API
+    DYNAMO_DB_TABLE: USERAPI
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -24,10 +24,60 @@ provider:
         - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DYNAMO_DB_TABLE}/index/GSI1
 
 functions:
-  api:
+  checkApiWorking:
     handler: src/handler.handler
     events:
-      - httpApi: '*'
+      - httpApi:
+          path: /
+          method: get
+
+  createUser:
+    handler: src/handler.handler
+    events:
+      - httpApi:
+          path: /users
+          method: post
+  
+  getAllUsers:
+    handler: src/handler.handler
+    events:
+      - httpApi:
+          path: /users
+          method: get
+
+  getUserById:
+    handler: src/handler.handler
+    events:
+      - httpApi: 
+          path: /users/{id}
+          method: get
+
+  getUserByEmail:
+    handler: src/handler.handler
+    events:
+      - httpApi:
+          path: /users/by-email
+          method: get
+
+  updateUser:
+    handler: src/handler.handler
+    events:
+      - httpApi:
+          path: /users/{id}
+          method: put
+
+  deleteUser:
+    handler: src/handler.handler
+    events:
+      - httpApi: 
+          path: /users/{id}
+          method: delete
+
+
+  # api:
+    # handler: src/handler.handler
+    # events:
+      # - httpApi: '*'
 
 plugins:
   - serverless-webpack
@@ -42,10 +92,10 @@ custom:
 
 resources:
   Resources:
-    USER-API:
+    USERAPI:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: USER-API
+        TableName: USERAPI
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
           - AttributeName: pk
