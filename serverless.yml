@@ -11,15 +11,14 @@ provider:
   iamRoleStatements:
     - Effect: Allow
       Action:
-        # - dynamodb:*
         - dynamodb:GetItem
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:Query
         - dynamodb:Scan
         - dynamodb:DeleteItem
-      Resource: 
-        # "*"
+        - dynamodb:BatchWriteItem 
+      Resource:
         - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DYNAMO_DB_TABLE}
         - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DYNAMO_DB_TABLE}/index/GSI1
 
@@ -37,7 +36,7 @@ functions:
       - httpApi:
           path: /users
           method: post
-  
+
   getAllUsers:
     handler: src/handler.handler
     events:
@@ -48,7 +47,7 @@ functions:
   getUserById:
     handler: src/handler.handler
     events:
-      - httpApi: 
+      - httpApi:
           path: /users/{id}
           method: get
 
@@ -69,19 +68,12 @@ functions:
   deleteUser:
     handler: src/handler.handler
     events:
-      - httpApi: 
+      - httpApi:
           path: /users/{id}
           method: delete
 
-
-  # api:
-    # handler: src/handler.handler
-    # events:
-      # - httpApi: '*'
-
 plugins:
   - serverless-webpack
-  # []
 
 custom:
   webpack:
@@ -102,7 +94,9 @@ resources:
             AttributeType: S
           - AttributeName: sk
             AttributeType: S
-          - AttributeName: email
+          - AttributeName: entity
+            AttributeType: S
+          - AttributeName: createdAt
             AttributeType: S
         KeySchema:
           - AttributeName: pk
@@ -112,7 +106,44 @@ resources:
         GlobalSecondaryIndexes:
           - IndexName: GSI1
             KeySchema:
-              - AttributeName: email
+              - AttributeName: entity
                 KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
             Projection:
               ProjectionType: ALL
+
+# resources:
+#   Resources:
+#     USERAPI:
+#       Type: AWS::DynamoDB::Table
+#       Properties:
+#         TableName: USERAPI
+#         BillingMode: PAY_PER_REQUEST
+#         AttributeDefinitions:
+#           - AttributeName: pk
+#             AttributeType: S
+#           - AttributeName: sk
+#             AttributeType: S
+#           - AttributeName: email
+#             AttributeType: S
+#         KeySchema:
+#           - AttributeName: pk
+#             KeyType: HASH
+#           - AttributeName: sk
+#             KeyType: RANGE
+#         GlobalSecondaryIndexes:
+#           - IndexName: GSI1
+#             KeySchema:
+#               - AttributeName: email
+#                 KeyType: HASH
+#             Projection:
+#               ProjectionType: ALL
+
+# GlobalSecondaryIndexes:
+#   - IndexName: GSI1
+#     KeySchema:
+#       - AttributeName: entity   # Partition key
+#       - AttributeName: createdAt # Sort key
+#     Projection:
+#       ProjectionType: ALL
