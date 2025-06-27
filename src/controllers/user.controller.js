@@ -38,7 +38,6 @@ export const createUser = async (req, res) => {
 
 
 // Get User By Id
-
 export const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -69,42 +68,6 @@ export const getUserById = async (req, res) => {
 };
 
 
-// Update
-// export const updateUser = async(req,res)=>{
-//   try {
-//     const { id } = req.params;
-//     console.log("Incoming ID:", id); // ✅ Log to verify input
-//     const { name, email } = req.body;
-//     // const data = JSON.parse(req.body)
-//     const pk = `USER#${id}`;
-//     const sk = `PROFILE`;
-
-//     const found = await dynamoDb.get({TableName: tableName, Key:{pk,sk}}).promise()
-
-//     if (!found.Item) {
-//       return res.status(404).json({message:"User not found"})
-//     }
-//     const result = await dynamoDb.update({
-//       TableName: tableName,
-//        Key: { pk, sk },
-//       UpdateExpression: "SET #name = :name, email = :email",
-//       ExpressionAttributeNames:{
-//         "#name": "name"
-//       },
-//       ExpressionAttributeValues:{
-//         ":name": name,
-//         ":email": email
-//       },
-//       ReturnValues: "ALL_NEW"
-//     }).promise()
-
-//     return res.status(200).json(result.Attributes)
-
-//   } catch (error) {
-//     console.error("updateUser error:", error);
-//     return res.status(500).json({ message: "Internal Server Error", error: error.message });
-//   }
-// }
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -150,67 +113,27 @@ export const updateUser = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
-/*
-module.exports.updateUser = async (event) => {
-  const { id } = event.pathParameters;
-  const data = JSON.parse(event.body);
-  const pk = `USER#${id}`;
-  const sk = `PROFILE`;
 
-  const found = await dynamoDb
-    .get({ TableName: tableName, Key: { pk, sk } })
-    .promise();
+// delete User
+export const deleteUser = async(req,res)=>{
+  try {
+    const {id} = req.params
+    const pk = `USER#${id}`
+    const sk = `PROFILE`;
 
-  if (!found.Item) {
-    return {
-      statusCode: 404,
-      body: JSON.stringify({ message: "User not found" }),
-    };
+    const found = await dynamoDb.get({TableName: tableName, Key: {pk,sk}}).promise()
+
+    if (!found.Item) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    await dynamoDb.delete({TableName: tableName, Key:{pk,sk}}).promise()
+    return res.status(201).json({ message: "User Deleted Successfully", found });
+  } catch (error) {
+    console.error("deleteUser error:", error);
+    return res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
-  const result = await dynamoDb
-    .update({
-      TableName: tableName,
-      Key: { pk, sk },
-      UpdateExpression: "SET #name = :name, email = :email",
-      ExpressionAttributeNames: { "#name": "name" },
-      ExpressionAttributeValues: {
-        ":name": data.name,
-        ":email": data.email,
-      },
-      ReturnValues: "ALL_NEW",
-    })
-    .promise();
+}
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify(result.Attributes),
-  };
-};
-
-// Delete
-module.exports.deleteUser = async (event) => {
-  const { id } = event.pathParameters;
-  const pk = `USER#${id}`;
-  const sk = `PROFILE`;
-
-  const found = await dynamoDb
-    .get({ TableName: tableName, Key: { pk, sk } })
-    .promise();
-
-  if (!found.Item) {
-    return {
-      statusCode: 404,
-      body: JSON.stringify({ message: "User not found" }),
-    };
-  }
-  await dynamoDb.delete({ TableName: tableName, Key: { pk, sk } }).promise();
-
-  return {
-    statusCode: 200,
-    body: JSON.stringify({ message: "User deleted" }),
-  };
-};
-*/
 
 // Get All
 export const getAllUsers = async(req,res)=>{
@@ -230,38 +153,26 @@ export const getAllUsers = async(req,res)=>{
   }
 }
 
-/*
-// Get By Email using GSI
-module.exports.getUserByEmail = async (event) => {
-  const email = event.queryStringParameters?.email;
-
-  if (!email || email.trim() === "") {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ message: "Email query parameter is required." }),
-    };
-  }
-
-  const params = {
-    TableName: process.env.DYNAMO_DB_TABLE,
-    IndexName: "GSI1",
-    KeyConditionExpression: "email = :email",
-    ExpressionAttributeValues: {
-      ":email": email,
-    },
-  };
-
+export const getUserByEmail = async(req,res)=>{
   try {
-    const result = await dynamoDb.query(params).promise();
-    return {
-      statusCode: 200,
-      body: JSON.stringify(result.Items),
-    };
+    const email = req.query.email
+    if (!email || email.trim()==="") {
+      return res.status(400).json({message:"Email query parameter is required."})
+    }
+    const params = {
+      TableName: tableName,
+      IndexName: 'GSI1',
+      KeyConditionExpression: 'email = :email',
+      ExpressionAttributeValues:{
+        ':email': email
+      }
+    }
+
+    const result  = await dynamoDb.query(params).promise()
+    return res.status(200).json(result.Items)
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: error.message }),
-    };
+    console.error('DynamoDB query failed:', error);
+    return res.status(500).json({ message: error.message });
   }
-};
-*/
+}
+

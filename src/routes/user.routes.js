@@ -12,9 +12,9 @@ const router = express.Router();
 console.log("gg")
 router.post('/', createUser);
 router.get('/', getAllUsers);
-// router.get('/by-email', getUserByEmail); // /users/by-email?email=test@example.com
+router.get('/by-email', getUserByEmail); // /users/by-email?email=test@example.com
 router.get('/:id', getUserById);
 router.put('/:id', updateUser);
-// router.delete('/:id', deleteUser);
+router.delete('/:id', deleteUser);
 
 export default router;
