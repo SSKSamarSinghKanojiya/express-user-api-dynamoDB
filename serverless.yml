@@ -7,7 +7,7 @@ provider:
   runtime: nodejs18.x
   region: us-east-1
   environment:
-    DYNAMO_DB_TABLE: ProductAPI
+    DYNAMO_DB_TABLE: USER-API
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -18,7 +18,10 @@ provider:
         - dynamodb:Query
         - dynamodb:Scan
         - dynamodb:DeleteItem
-      Resource: "*"
+      Resource: 
+        # "*"
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DYNAMO_DB_TABLE}
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DYNAMO_DB_TABLE}/index/GSI1
 
 functions:
   api:
@@ -39,10 +42,10 @@ custom:
 
 resources:
   Resources:
-    ProductAPI:
+    USER-API:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ProductAPI
+        TableName: USER-API
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
           - AttributeName: pk
