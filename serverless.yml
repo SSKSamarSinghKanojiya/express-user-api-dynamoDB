@@ -24,7 +24,7 @@ provider:
         - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DYNAMO_DB_TABLE}/index/GSI1
 
 functions:
-  checkApiWorking:
+  checkAPI:
     handler: src/handler.handler
     events:
       - httpApi:
